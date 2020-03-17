@@ -16,23 +16,28 @@ class GameScene: SKScene {
     
     weak var viewController: GameViewController!
     
-    private var keyboardNode: SKSpriteNode?
-    private var labelNode: SKLabelNode?
-    private var oneNode: SKSpriteNode?
-    private var twoNode: SKSpriteNode?
-    private var threeNode: SKSpriteNode?
-    private var fourNode: SKSpriteNode?
-    private var fiveNode: SKSpriteNode?
-    private var sixNode: SKSpriteNode?
-    private var sevenNode: SKSpriteNode?
-    private var eightNode: SKSpriteNode?
-    private var nineNode: SKSpriteNode?
-    private var zeroNode: SKSpriteNode?
+    /*private*/ var keyboardNode: SKSpriteNode?
+    /*private*/ var smallKeyboardNode: SKSpriteNode?
+    /*private*/ var labelNode: SKLabelNode?
+    /*private*/ var oneNode: SKSpriteNode?
+    /*private*/ var twoNode: SKSpriteNode?
+    /*private*/ var threeNode: SKSpriteNode?
+    /*private*/ var fourNode: SKSpriteNode?
+    /*private*/ var fiveNode: SKSpriteNode?
+    /*private*/ var sixNode: SKSpriteNode?
+    /*private*/ var sevenNode: SKSpriteNode?
+    /*private*/ var eightNode: SKSpriteNode?
+    /*private*/ var nineNode: SKSpriteNode?
+    /*private*/ var zeroNode: SKSpriteNode?
+    /*private*/ var clearNode: SKSpriteNode?
+    
+    var isMoved: Bool = false
     
     override func didMove(to view: SKView) {
         
         // Get label node from scene and store it for use later
         self.keyboardNode = self.childNode(withName: "//keyboard") as? SKSpriteNode
+        self.smallKeyboardNode = self.childNode(withName: "//small-keyboard") as? SKSpriteNode
         self.oneNode = self.keyboardNode?.childNode(withName: "//1") as? SKSpriteNode
         self.twoNode = self.keyboardNode?.childNode(withName: "//2") as? SKSpriteNode
         self.threeNode = self.keyboardNode?.childNode(withName: "//3") as? SKSpriteNode
@@ -43,10 +48,12 @@ class GameScene: SKScene {
         self.eightNode = self.keyboardNode?.childNode(withName: "//8") as? SKSpriteNode
         self.nineNode = self.keyboardNode?.childNode(withName: "//9") as? SKSpriteNode
         self.zeroNode = self.keyboardNode?.childNode(withName: "//0") as? SKSpriteNode
-        
-        
+        clearNode = keyboardNode?.childNode(withName: "//C") as? SKSpriteNode
+                
 //        self.oneNode?.size = CGSize(width: 200, height: 50)
-        self.keyboardNode?.zPosition = -1
+//        self.keyboardNode?.zPosition = -1
+        
+        smallKeyboardNode?.isHidden = true
         
 //        if let label = self.label {
 //            label.alpha = 0.0
@@ -99,66 +106,116 @@ class GameScene: SKScene {
 //        if let label = self.label {
 //            label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
 //        }
+        
+//        print(keyboardNode?.position)
+//        keyboardNode?.anchorPoint = CGPoint(x: 0, y: 1)
+//        keyboardNode?.position = keyboardNode!.anchorPoint
+//        print(keyboardNode?.position)
 //
-//        for t in touches { self.touchDown(atPoint: t.location(in: self)) }
+//        print("First: \(touches.first?.location(in: self))")
+//        print("Frame: \(view?.frame.size)")
+//
+//        for t in touches {
+//            print("t.x: \(t.location(in: self).x),t.y: \(t.location(in: self).y)")
+//            print("k.x: \(t.location(in: keyboardNode!).x),k.y: \(t.location(in: keyboardNode!).y)")
+//            let apX = (t.location(in: self).x + ((keyboardNode?.frame.width)! / 2)) / (keyboardNode?.frame.width)!
+//            let apY = (t.location(in: self).y + ((keyboardNode?.frame.height)! / 2)) / (keyboardNode?.frame.height)!
+//            print("apX: \(apX), apY: \(apY)")
+//            keyboardNode?.anchorPoint = CGPoint(x: apX, y: apY)
+//        }
+        
+//        keyboardNode?.isHidden = true
+//        smallKeyboardNode?.isHidden = false
+//        smallKeyboardNode?.position = keyboardNode!.position
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-//        print("First: \(touches.first)")
+//        print("\(keyboardNode?.frame.size)")
+//        print("Location in view: \(touches.first?.location(in: self))")
+//        print("Location in keyboard: \(touches.first?.location(in: keyboardNode!))")
+        isMoved = true
+        keyboardNode?.isHidden = true
+        smallKeyboardNode?.isHidden = false
+        smallKeyboardNode?.position = keyboardNode!.position
+        
         for t in touches {
             if (self.keyboardNode?.contains(t.location(in: self)))! {
-                self.keyboardNode?.position = t.location(in: self)
+//                keyboardNode?.anchorPoint = t.location(in: self)
+                
+                
+//                let apX = (t.location(in: self).x + ((keyboardNode?.frame.width)! / 2)) / (keyboardNode?.frame.width)!
+//                let apY = (t.location(in: self).y + ((keyboardNode?.frame.height)! / 2)) / (keyboardNode?.frame.height)!
+//                print("\(apX), \(apY)")
+//                keyboardNode?.anchorPoint = CGPoint(x: apX, y: apY)
+                
+//                self.keyboardNode?.position = t.location(in: self)
+                
+//                keyboardNode?.anchorPoint = CGPoint(x: 0, y: 0)
+                let moveAction = SKAction.move(to: CGPoint(x: t.location(in: self).x, y: t.location(in: self).y), duration: 0.1)
+                keyboardNode?.run(moveAction)
+                smallKeyboardNode?.run(moveAction)
             }
         }
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if self.viewController.focused?.text == "00" {
-            self.viewController.focused?.text = ""
+        if !isMoved {
+            for t in touches {
+                if self.viewController.focusedLabel?.text == "00" {
+                    self.viewController.focusedLabel?.text = ""
+                }
+                
+                var number = self.viewController.focusedLabel?.text
+                
+                if ((self.oneNode?.contains(t.location(in: self.keyboardNode!)))!) {
+                    number! += self.oneNode!.name!
+                    self.viewController.focusedLabel?.text = number
+                }
+                else if ((self.twoNode?.contains(t.location(in: self.keyboardNode!)))!) {
+                    number! += self.twoNode!.name!
+                    self.viewController.focusedLabel?.text = number
+                }
+                else if ((self.threeNode?.contains(t.location(in: self.keyboardNode!)))!) {
+                    number! += self.threeNode!.name!
+                    self.viewController.focusedLabel?.text = number
+                }
+                else if ((self.fourNode?.contains(t.location(in: self.keyboardNode!)))!) {
+                    number! += self.fourNode!.name!
+                    self.viewController.focusedLabel?.text = number
+                }
+                else if ((self.fiveNode?.contains(t.location(in: self.keyboardNode!)))!) {
+                    number! += self.fiveNode!.name!
+                    self.viewController.focusedLabel?.text = number
+                }
+                else if ((self.sixNode?.contains(t.location(in: self.keyboardNode!)))!) {
+                    number! += self.sixNode!.name!
+                    self.viewController.focusedLabel?.text = number
+                }
+                else if ((self.sevenNode?.contains(t.location(in: self.keyboardNode!)))!) {
+                    number! += self.sevenNode!.name!
+                    self.viewController.focusedLabel?.text = number
+                }
+                else if ((self.eightNode?.contains(t.location(in: self.keyboardNode!)))!) {
+                    number! += self.eightNode!.name!
+                    self.viewController.focusedLabel?.text = number
+                }
+                else if ((self.nineNode?.contains(t.location(in: self.keyboardNode!)))!) {
+                    number! += self.nineNode!.name!
+                    self.viewController.focusedLabel?.text = number
+                }
+                else if ((self.zeroNode?.contains(t.location(in: self.keyboardNode!)))!) {
+                    number! += self.zeroNode!.name!
+                    self.viewController.focusedLabel?.text = number
+                }
+            }
+            
+            self.viewController.validate(number: self.viewController.focusedLabel!.text!)
         }
-        var number = self.viewController.focused?.text
-        
-        for t in touches {
-            if ((self.oneNode?.contains(t.location(in: self.keyboardNode!)))!) {
-                number! += self.oneNode!.name!
-                self.viewController.focused?.text = number
-            }
-            else if ((self.twoNode?.contains(t.location(in: self.keyboardNode!)))!) {
-                number! += self.twoNode!.name!
-                self.viewController.focused?.text = number
-            }
-            else if ((self.threeNode?.contains(t.location(in: self.keyboardNode!)))!) {
-                number! += self.threeNode!.name!
-                self.viewController.focused?.text = number
-            }
-            else if ((self.fourNode?.contains(t.location(in: self.keyboardNode!)))!) {
-                number! += self.fourNode!.name!
-                self.viewController.focused?.text = number
-            }
-            else if ((self.fiveNode?.contains(t.location(in: self.keyboardNode!)))!) {
-                number! += self.fiveNode!.name!
-                self.viewController.focused?.text = number
-            }
-            else if ((self.sixNode?.contains(t.location(in: self.keyboardNode!)))!) {
-                number! += self.sixNode!.name!
-                self.viewController.focused?.text = number
-            }
-            else if ((self.sevenNode?.contains(t.location(in: self.keyboardNode!)))!) {
-                number! += self.sevenNode!.name!
-                self.viewController.focused?.text = number
-            }
-            else if ((self.eightNode?.contains(t.location(in: self.keyboardNode!)))!) {
-                number! += self.eightNode!.name!
-                self.viewController.focused?.text = number
-            }
-            else if ((self.nineNode?.contains(t.location(in: self.keyboardNode!)))!) {
-                number! += self.nineNode!.name!
-                self.viewController.focused?.text = number
-            }
-            else if ((self.zeroNode?.contains(t.location(in: self.keyboardNode!)))!) {
-                number! += self.zeroNode!.name!
-                self.viewController.focused?.text = number
-            }
+        else {
+            smallKeyboardNode?.isHidden = true
+            keyboardNode?.isHidden = false
+            keyboardNode?.position = smallKeyboardNode!.position
+            isMoved = false
         }
     }
     
